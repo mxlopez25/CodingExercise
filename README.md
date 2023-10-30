@@ -11,7 +11,9 @@ Design Pattern: MVVM
 HTTP Client: Retrofit
 
 Testing: UI Testing (End to End)
+
 UI Layout: XML
+
 Recycler View Pagination: True
 
 Notes:
