@@ -16,7 +16,6 @@ import kotlinx.coroutines.withContext
 class MainViewModel : ViewModel() {
     private val repoApi: GitHubAPI = RetrofitHelper.getInstance().create(GitHubAPI::class.java)
     private var _state: MutableLiveData<RequestState> = MutableLiveData()
-    private var repoList: MutableList<Repo> = arrayListOf()
 
     fun getRequestState(): LiveData<RequestState> = _state
 
@@ -34,14 +33,15 @@ class MainViewModel : ViewModel() {
     }
 
     suspend fun addRepos(items: MutableList<Repo>) {
+        var l: MutableList<Repo> = arrayListOf()
         for (i in items) {
             withContext(Dispatchers.IO) {
                 val tc = async { repoApi.getTopContributors(i.owner.login, i.name) }.await().first()
                 i.topContributor = tc
-                repoList.add(i)
+                l.add(i)
             }
         }
-        _state.value = RequestState.Success(repoList)
+        _state.value = RequestState.Success(l)
     }
 }
 

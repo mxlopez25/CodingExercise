@@ -19,13 +19,14 @@ class MainActivity : AppCompatActivity() {
     private val viewModel : MainViewModel by viewModels()
     private val rvReposeLinearLayoutManager = LinearLayoutManager(this)
     private lateinit var adapter: RepoListAdapter
+    private var repoList: MutableList<Repo> = arrayListOf()
     private var pageCount = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         binding.rvRepos.layoutManager = rvReposeLinearLayoutManager
-        adapter = RepoListAdapter(emptyList<Repo>())
+        adapter = RepoListAdapter(repoList)
         binding.rvRepos.adapter = adapter
 
         binding.btnMakeRequest.setOnClickListener {
@@ -64,7 +65,11 @@ class MainActivity : AppCompatActivity() {
         when (state) {
             is RequestState.Loading -> {
                 binding.progressBar.visibility = View.VISIBLE
-                binding.rvRepos.visibility = View.INVISIBLE
+                if(repoList.size > 1) {
+                    binding.rvRepos.visibility = View.VISIBLE
+                } else {
+                    binding.rvRepos.visibility = View.INVISIBLE
+                }
                 binding.btnMakeRequest.isEnabled = false
                 binding.tvError.visibility = View.INVISIBLE
             }
@@ -73,7 +78,9 @@ class MainActivity : AppCompatActivity() {
                 binding.rvRepos.visibility = View.VISIBLE
                 binding.btnMakeRequest.isEnabled = true
                 binding.tvError.visibility = View.INVISIBLE
-                binding.rvRepos.adapter = RepoListAdapter(state.repos)
+                repoList.addAll(state.repos)
+                adapter.notifyDataSetChanged()
+//                binding.rvRepos.adapter = RepoListAdapter(state.repos)
 
             }
             is RequestState.Error -> {
