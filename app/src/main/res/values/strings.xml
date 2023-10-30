@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">CodingExercise</string>
+    <string name="reponame_label">RepoName</string>
+    <string name="is_private_label">Is Private</string>
+    <string name="tc_name">TC Name</string>
+    <string name="top_contributor">Top Contributor</string>
+    <string name="contributions">Contributions</string>
+</resources>
