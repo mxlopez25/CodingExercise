@@ -5,4 +5,6 @@
     <string name="tc_name">TC Name</string>
     <string name="top_contributor">Top Contributor</string>
     <string name="contributions">Contributions</string>
+    <string name="make_request">Make Request</string>
+    <string name="error_label">Error</string>
 </resources>
