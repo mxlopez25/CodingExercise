@@ -13,49 +13,40 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainViewModel: ViewModel() {
-    val repoApi = RetrofitHelper.getInstance().create(GitHubAPI::class.java)
-    private var _repos = MutableLiveData<MutableList<Repo>>()
+class MainViewModel : ViewModel() {
+    private val repoApi: GitHubAPI = RetrofitHelper.getInstance().create(GitHubAPI::class.java)
+    private var _state: MutableLiveData<RequestState> = MutableLiveData()
+    private var repoList: MutableList<Repo> = arrayListOf()
 
-    fun getData(): LiveData<MutableList<Repo>> {
-        return _repos
-    }
+    fun getRequestState(): LiveData<RequestState> = _state
 
-    fun getRepos() {
+    fun getRepos(page: Int) {
+        _state.value = RequestState.Loading
         viewModelScope.launch {
             try {
-                val result = repoApi.getRepositories()
+                val result = repoApi.getRepositories(page)
                 addRepos(result.items as MutableList<Repo>)
             } catch (e: java.lang.Exception) {
+                _state.value = RequestState.Error(e.message!!)
                 Log.d("Request Error", e.toString())
             }
         }
     }
 
     suspend fun addRepos(items: MutableList<Repo>) {
-        var l: MutableList<Repo> = arrayListOf()
-        if(_repos.value == null) {
-            for(i in items) {
-                withContext(Dispatchers.IO) {
-                    try {
-                        val tc = async { repoApi.getTopContributors(i.owner.login, i.name) }
-                        val t = tc.await().first()
-                        i.topContributor = t
-                        l.add(i)
-                    } catch (e: Exception) {
-                        Log.d("RequestError", e.message!!)
-                    }
-                }
+        for (i in items) {
+            withContext(Dispatchers.IO) {
+                val tc = async { repoApi.getTopContributors(i.owner.login, i.name) }.await().first()
+                i.topContributor = tc
+                repoList.add(i)
             }
-            _repos.value = l
-        } else {
-            _repos.value?.addAll(items)
         }
+        _state.value = RequestState.Success(repoList)
     }
 }
 
 sealed class RequestState {
-    object Loading: RequestState()
-    data class Sucess(val repos: List<Repo>): RequestState()
-    data class Error(val error: String): RequestState()
+    object Loading : RequestState()
+    data class Success(val repos: List<Repo>) : RequestState()
+    data class Error(val error: String) : RequestState()
 }
